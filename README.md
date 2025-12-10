@@ -13,6 +13,17 @@
 - **🔥 Performance Optimized**: Built with `FlatList` virtualization and React Memoization for instant responsiveness.
 - **📱 Native Feel**: Custom "Sheet" animations on Android to match the iOS standard.
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="./assets/screenshot/sh1.jpg" width="45%" />
+  <img src="./assets/screenshot/sh2.jpg" width="45%" />
+</p>
+<p align="center">
+  <img src="./assets/screenshot/sh_d_1.jpg" width="45%" />
+  <img src="./assets/screenshot/sh_d_2.jpg" width="45%" />
+</p>
+
 ## 🛠️ Tech Stack
 
 - **Framework**: React Native (Expo SDK 52)
