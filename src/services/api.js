@@ -28,19 +28,3 @@ export const fetchExerciseImage = async (exerciseName) => {
     return null;
   }
 };
-
-const getWgerImageForId = async (id) => {
-  try {
-    const url = `https://wger.de/api/v2/exerciseimage/?exercise=${id}&limit=1`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-
-    const data = await res.json();
-    if (data.results && data.results.length > 0) {
-      return data.results[0].image;
-    }
-  } catch (e) {
-    // ignore
-  }
-  return null;
-};

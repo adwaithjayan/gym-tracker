@@ -154,10 +154,6 @@ export const getCurrentRotationWorkout = async () => {
     );
 
     if (lastCompletionDate && lastCompletionDate < today) {
-      console.log(
-        "Auto-advancing rotation because previous day was completed on:",
-        lastCompletionDate
-      );
       return await advanceToNextDay(true); // pass true to indicate we should reset the next workout
     }
   }
@@ -213,7 +209,6 @@ export const getWorkouts = async () => {
 
 // Check all workouts, if local image is missing but original URL exists, re-download it.
 export const restoreImages = async () => {
-  console.log("Restoring images...");
   const workouts = await getWorkouts();
   let hasChanges = false;
 
@@ -230,7 +225,6 @@ export const restoreImages = async () => {
         }
 
         if (needsDownload) {
-          console.log(`Restoring image for ${ex.name}`);
           const filename = `${Date.now()}_${Math.random()
             .toString(36)
             .substr(7)}.jpg`;
@@ -249,6 +243,5 @@ export const restoreImages = async () => {
 
   if (hasChanges) {
     await AsyncStorage.setItem(WORKOUTS_KEY, JSON.stringify(workouts));
-    console.log("Images restored and updated.");
   }
 };

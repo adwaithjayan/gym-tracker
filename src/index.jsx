@@ -3,12 +3,21 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
-  Image,
+  FlatList,
   Alert,
+  Image,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Plus, RefreshCw, Check } from "lucide-react-native";
+import { StatusBar } from "expo-status-bar";
+import {
+  Plus,
+  RefreshCw,
+  Check,
+  Sun,
+  Moon,
+  Monitor,
+} from "lucide-react-native";
+import { useColorScheme } from "nativewind";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -41,12 +50,12 @@ const ExerciseItem = ({ item, onToggle }) => {
   const ExerciseContent = () => (
     <View
       className={cn(
-        "bg-white flex-row items-center justify-between p-3 h-24 w-full rounded-2xl shadow-sm mb-3 border border-gray-100",
+        "bg-white dark:bg-[#18181b] flex-row items-center justify-between p-3 h-24 w-full rounded-2xl shadow-sm mb-3 border border-gray-100 dark:border-zinc-800",
         item.completed && "opacity-40"
       )}
     >
       {/* Left Square Placeholder */}
-      <View className="w-20 h-20 bg-gray-50 overflow-hidden rounded-xl">
+      <View className="w-20 h-20 bg-gray-50 dark:bg-zinc-800 overflow-hidden rounded-xl">
         {item.image ? (
           <Image
             source={{ uri: item.image }}
@@ -55,14 +64,16 @@ const ExerciseItem = ({ item, onToggle }) => {
           />
         ) : (
           <View className="items-center justify-center flex-1">
-            <Text className="text-gray-300 text-xs">No Image</Text>
+            <Text className="text-gray-300 dark:text-zinc-600 text-xs">
+              No Image
+            </Text>
           </View>
         )}
       </View>
 
       {/* Exercise Name */}
       <Text
-        className="text-gray-900 text-lg font-bold tracking-tight flex-1 mx-4"
+        className="text-gray-900 dark:text-white text-lg font-bold tracking-tight flex-1 mx-4"
         numberOfLines={2}
       >
         {item.name}
@@ -75,13 +86,13 @@ const ExerciseItem = ({ item, onToggle }) => {
         activeOpacity={0.7}
         className={cn(
           "w-12 h-12 rounded-full items-center justify-center shadow-sm",
-          item.completed ? "bg-green-500" : "bg-gray-100"
+          item.completed ? "bg-green-500" : "bg-gray-100 dark:bg-zinc-700"
         )}
       >
         {item.completed ? (
           <Check size={24} color="white" />
         ) : (
-          <View className="w-4 h-4 rounded-full bg-gray-300" />
+          <View className="w-4 h-4 rounded-full bg-gray-300 dark:bg-zinc-500" />
         )}
       </TouchableOpacity>
     </View>
@@ -107,8 +118,23 @@ const ExerciseItem = ({ item, onToggle }) => {
     </Swipeable>
   );
 };
+const MemoizedExerciseItem = React.memo(ExerciseItem);
 
 export default function WorkoutScreen() {
+  const { colorScheme, setColorScheme } = useColorScheme();
+
+  const toggleTheme = () => {
+    setColorScheme(colorScheme === "dark" ? "light" : "dark");
+  };
+
+  const getThemeIcon = () => {
+    return colorScheme === "dark" ? (
+      <Moon size={22} color="#DC2626" />
+    ) : (
+      <Sun size={22} color="#DC2626" />
+    );
+  };
+
   const [exercises, setExercises] = useState([]);
   const [workoutTitle, setWorkoutTitle] = useState("Workout");
   const [currentDay, setCurrentDay] = useState("1");
@@ -138,27 +164,52 @@ export default function WorkoutScreen() {
     loadData();
   }, [loadData]);
 
-  const toggleComplete = async (id) => {
-    const updatedExercises = exercises.map((ex) =>
-      ex.id === id && !ex.completed ? { ...ex, completed: true } : ex
-    );
-    setExercises(updatedExercises);
-    // Update the pending state in storage (so if they close app, it's saved)
-    await updateWorkoutProgress(currentDay, updatedExercises);
+  const toggleComplete = useCallback(
+    async (id) => {
+      let updatedExercises = [];
+      setExercises((prev) => {
+        updatedExercises = prev.map((ex) =>
+          ex.id === id && !ex.completed ? { ...ex, completed: true } : ex
+        );
+        return updatedExercises;
+      });
 
-    // Check if ALL exercises are now completed
-    if (
-      updatedExercises.every((e) => e.completed) &&
-      updatedExercises.length > 0
-    ) {
-      // 1. Mark the day as consistent (stat++)
-      const marked = await markTodayComplete();
+      // Valid check logic needs updatedExercises.
+      // Since setState is async/functional, valid "updatedExercises" for logic is tricky inside the setter.
+      // Actually we can reconstruct it. But for storage/async logic, we need the value.
+      // Pattern: Calculate new state first, then set it.
+      // BUT to keep useCallback stable, we can't depend on "exercises" state.
+      // So we use functional update. But we need the result for API.
+      // Workaround: We can't easily perform "async" logic inside setStats without refs or reloading.
+      // However, if we just use functional update for UI update, and then - wait.
+      // To make toggleComplete dependency-free, we need to NOT read 'exercises'.
+      // Correct approach:
+      // setExercises(prev => {
+      //    const next = ...
+      //    // Side effects here? No.
+      //    return next;
+      // })
+      // We'll leave it as is but remove 'exercises' from dependency array by using functional update inside.
+      // Ah, but we need the NEW list for `updateWorkoutProgress`.
+      // We can chain the logic.
 
-      // 2. Just refresh logic (don't advance day yet)
-      const s = await getStats();
-      setStats(s);
-    }
-  };
+      // Simpler efficient way:
+      setExercises((currentExercises) => {
+        const updated = currentExercises.map((ex) =>
+          ex.id === id && !ex.completed ? { ...ex, completed: true } : ex
+        );
+
+        // Fire and forget side effects (using the calculated 'updated', not state)
+        updateWorkoutProgress(currentDay, updated);
+
+        if (updated.every((e) => e.completed) && updated.length > 0) {
+          markTodayComplete().then(() => getStats().then(setStats));
+        }
+        return updated;
+      });
+    },
+    [currentDay]
+  ); // Only depends on currentDay now.
 
   const [isSyncModalVisible, setSyncModalVisible] = useState(false);
   const [isAddModalVisible, setAddModalVisible] = useState(false);
@@ -229,68 +280,78 @@ export default function WorkoutScreen() {
 
   return (
     <>
-      <GestureHandlerRootView className="flex-1 bg-[#F2F2F7] relative">
-        <View className="flex-row justify-between items-center px-6 pt-16 pb-6 bg-white rounded-b-[40px] shadow-sm z-10">
-          <TouchableOpacity
-            className="p-3 bg-gray-50 rounded-full"
-            onPress={handleSyncPress}
-          >
-            <RefreshCw size={22} color="#DC2626" />
-          </TouchableOpacity>
-          <View className="items-center">
-            <Text className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-1">
-              Consistency
-            </Text>
-            <Text className="text-3xl font-black text-gray-900">
-              {stats.completedDays}
-              <Text className="text-gray-300 text-xl font-medium">
-                /{stats.totalDays}
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View className="flex-1 bg-[#F2F2F7] dark:bg-[#09090b] relative">
+          <View className="flex-row justify-between items-center px-6 pt-16 pb-6 bg-white dark:bg-[#18181b] rounded-b-[40px] shadow-sm z-10 border-b border-gray-100 dark:border-zinc-800">
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                className="p-3 bg-gray-50 dark:bg-zinc-800 rounded-full"
+                onPress={handleSyncPress}
+              >
+                <RefreshCw size={22} color="#DC2626" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="p-3 bg-gray-50 dark:bg-zinc-800 rounded-full"
+                onPress={toggleTheme}
+              >
+                {getThemeIcon()}
+              </TouchableOpacity>
+            </View>
+            <View className="items-center">
+              <Text className="text-gray-400 dark:text-zinc-500 text-xs font-bold tracking-widest uppercase mb-1">
+                Consistency
               </Text>
-            </Text>
+              <Text className="text-3xl font-black text-gray-900 dark:text-white">
+                {stats.completedDays}
+                <Text className="text-gray-300 dark:text-zinc-700 text-xl font-medium">
+                  /{stats.totalDays}
+                </Text>
+              </Text>
+            </View>
           </View>
-        </View>
-        {/* Title Section */}
-        <View className="pt-10 pb-7 px-8">
-          <Text className="text-zinc-500 text-lg font-medium mb-1 uppercase tracking-widest">
-            Today's Focus
-          </Text>
-          <Text className="text-5xl font-black text-gray-900 italic tracking-tighter">
-            {workoutTitle}
-          </Text>
-        </View>
-        {/* Exercises List */}
-        <ScrollView className="flex-1 px-5 mx-2 mb-6 rounded-[40px] overflow-hidden">
-          <View className="gap-6 pb-32">
-            {exercises.length === 0 ? (
+          {/* Title Section */}
+          {/* Header Component for FlatList */}
+          <FlatList
+            className="flex-1 px-5 mx-2 mb-6 rounded-[40px] overflow-hidden"
+            data={exercises}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <MemoizedExerciseItem item={item} onToggle={toggleComplete} />
+            )}
+            contentContainerStyle={{ gap: 24, paddingBottom: 128 }}
+            ListHeaderComponent={
+              <View className="pt-10 pb-7 px-3">
+                <Text className="text-zinc-500 dark:text-zinc-400 text-lg font-medium mb-1 uppercase tracking-widest">
+                  Today's Focus
+                </Text>
+                <Text className="text-5xl font-black text-gray-900 dark:text-white italic tracking-tighter">
+                  {workoutTitle}
+                </Text>
+              </View>
+            }
+            ListEmptyComponent={
               <View className="items-center justify-center pt-20">
-                <Text className="text-gray-300 text-2xl font-bold">
+                <Text className="text-gray-300 dark:text-zinc-700 text-2xl font-bold">
                   Rest Day?
                 </Text>
-                <Text className="text-gray-400 text-sm mt-2">
+                <Text className="text-gray-400 dark:text-zinc-600 text-sm mt-2">
                   No exercises added yet.
                 </Text>
               </View>
-            ) : (
-              exercises.map((item) => (
-                <ExerciseItem
-                  key={item.id}
-                  item={item}
-                  onToggle={toggleComplete}
-                />
-              ))
-            )}
+            }
+          />
+          {/* Floating Action Button */}
+          <View className="absolute bottom-10 right-8">
+            <TouchableOpacity
+              className="w-18 h-18 bg-[#DC2626] rounded-3xl items-center justify-center shadow-lg shadow-red-500/40 transform rotate-3"
+              style={{ width: 72, height: 72 }}
+              activeOpacity={0.9}
+              onPress={() => setAddModalVisible(true)}
+            >
+              <Plus color="white" size={36} strokeWidth={3} />
+            </TouchableOpacity>
           </View>
-        </ScrollView>
-        {/* Floating Action Button */}
-        <View className="absolute bottom-10 right-8">
-          <TouchableOpacity
-            className="w-18 h-18 bg-[#DC2626] rounded-3xl items-center justify-center shadow-lg shadow-red-500/40 transform rotate-3"
-            style={{ width: 72, height: 72 }}
-            activeOpacity={0.9}
-            onPress={() => setAddModalVisible(true)}
-          >
-            <Plus color="white" size={36} strokeWidth={3} />
-          </TouchableOpacity>
         </View>
       </GestureHandlerRootView>
       <SyncOptionsModal
@@ -305,7 +366,6 @@ export default function WorkoutScreen() {
         visible={isAddModalVisible}
         onClose={() => setAddModalVisible(false)}
         onSuccess={() => {
-          console.log("Workout Saved!");
           loadData();
         }}
       />
