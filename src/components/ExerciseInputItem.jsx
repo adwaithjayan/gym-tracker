@@ -35,12 +35,12 @@ export const ExerciseInputItem = ({
 
   return (
     <View className="mb-4">
-      {/* Red Container */}
-      <View className="bg-[#b92b2b] p-3 rounded-xl flex-row items-center h-24 shadow-sm">
-        {/* Image Container (White Box) */}
-        <View className="bg-white w-20 h-20 rounded-md mr-4 justify-center items-center overflow-hidden">
+      {/* Light Container */}
+      <View className="bg-white border border-gray-200 p-3 rounded-2xl flex-row items-center h-24 shadow-sm">
+        {/* Image Container */}
+        <View className="bg-gray-50 w-20 h-20 rounded-xl mr-4 justify-center items-center overflow-hidden border border-gray-100">
           {loading ? (
-            <ActivityIndicator color="#b92b2b" />
+            <ActivityIndicator color="#DC2626" />
           ) : item.image ? (
             <Image
               source={{ uri: item.image }}
@@ -48,15 +48,15 @@ export const ExerciseInputItem = ({
               resizeMode="cover"
             />
           ) : (
-            <View className="w-full h-full bg-gray-200" />
+            <View className="w-full h-full bg-gray-50" />
           )}
         </View>
 
         {/* Text Input */}
         <TextInput
-          className="flex-1 bg-white/10 text-white font-bold text-lg p-2 rounded-r-md"
+          className="flex-1 bg-white border border-gray-200 text-gray-900 font-bold text-lg p-3 rounded-xl shadow-sm"
           placeholder="Exercise Name"
-          placeholderTextColor="rgba(255,255,255,0.6)"
+          placeholderTextColor="#9CA3AF"
           value={item.name}
           onChangeText={(text) =>
             onUpdate(item.id, { ...item, name: text, image: null })

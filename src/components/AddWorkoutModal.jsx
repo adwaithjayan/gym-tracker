@@ -167,10 +167,12 @@ export const AddWorkoutModal = ({ visible, onClose, onSuccess }) => {
       animationType="slide"
       presentationStyle="pageSheet"
     >
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-[#F2F2F7]">
         {/* Header */}
-        <View className="flex-row justify-between items-center p-4 border-b border-gray-100">
-          <Text className="text-2xl font-bold">New Workout</Text>
+        <View className="flex-row justify-between items-center p-5 bg-white border-b border-gray-100 shadow-sm">
+          <Text className="text-3xl font-black text-gray-900 italic uppercase">
+            New Workout
+          </Text>
           <TouchableOpacity
             onPress={handleClose}
             className="p-2 bg-gray-100 rounded-full"
@@ -183,11 +185,14 @@ export const AddWorkoutModal = ({ visible, onClose, onSuccess }) => {
           {/* Top Controls: Title & Day */}
           <View className="flex-row gap-4 mb-8">
             {/* Title Input */}
-            <View className="flex-1 bg-gray-100 rounded-xl p-4">
-              <Text className="text-xs text-gray-400 mb-1">Workout Title</Text>
+            <View className="flex-1 bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <Text className="text-xs text-gray-400 font-bold uppercase mb-1">
+                Workout Title
+              </Text>
               <TextInput
-                className="text-lg font-semibold"
+                className="text-lg font-bold text-gray-900"
                 placeholder="e.g. Leg Day"
+                placeholderTextColor="#9CA3AF"
                 value={title}
                 onChangeText={setTitle}
               />
@@ -196,12 +201,16 @@ export const AddWorkoutModal = ({ visible, onClose, onSuccess }) => {
             {/* Day Dropdown Trigger */}
             <TouchableOpacity
               onPress={() => setShowDayPicker(true)}
-              className="bg-gray-100 rounded-xl p-4 w-24 justify-between"
+              className="bg-white rounded-2xl p-4 w-28 justify-between shadow-sm border border-gray-100"
             >
-              <Text className="text-xs text-gray-400 mb-1">Day</Text>
+              <Text className="text-xs text-gray-400 font-bold uppercase mb-1">
+                Day
+              </Text>
               <View className="flex-row items-center justify-between">
-                <Text className="text-xl font-bold">{selectedDay}</Text>
-                <ChevronDown size={20} color="gray" />
+                <Text className="text-xl font-black text-gray-900">
+                  {selectedDay}
+                </Text>
+                <ChevronDown size={20} color="#9CA3AF" />
               </View>
             </TouchableOpacity>
           </View>
@@ -223,12 +232,14 @@ export const AddWorkoutModal = ({ visible, onClose, onSuccess }) => {
         </ScrollView>
 
         {/* Footer Submit */}
-        <View className="p-5 border-t border-gray-100 absolute bottom-0 w-full bg-white">
+        <View className="p-5 border-t border-gray-200 absolute bottom-0 w-full bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
           <TouchableOpacity
             onPress={handleSubmit}
-            className="bg-green-500 rounded-2xl p-4 items-center shadow-lg"
+            className="bg-[#DC2626] rounded-2xl p-4 items-center shadow-lg shadow-red-500/30"
           >
-            <Text className="text-white font-bold text-lg">Save Workout</Text>
+            <Text className="text-white font-black text-lg uppercase tracking-wider">
+              Save Workout
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -240,11 +251,11 @@ export const AddWorkoutModal = ({ visible, onClose, onSuccess }) => {
               activeOpacity={1}
               onPress={() => setShowDayPicker(false)}
             >
-              <View className="bg-white rounded-2xl w-[80%] p-4 gap-2">
-                <Text className="text-center font-bold text-lg mb-4">
+              <View className="bg-white rounded-3xl w-[80%] p-6 gap-3 shadow-2xl">
+                <Text className="text-center font-black text-xl mb-4 text-gray-900 uppercase">
                   Select Day
                 </Text>
-                <View className="flex-row flex-wrap gap-2 justify-center">
+                <View className="flex-row flex-wrap gap-3 justify-center">
                   {[1, 2, 3, 4, 5, 6, 7].map((d) => (
                     <TouchableOpacity
                       key={d}
@@ -253,10 +264,10 @@ export const AddWorkoutModal = ({ visible, onClose, onSuccess }) => {
                         setShowDayPicker(false);
                       }}
                       className={cn(
-                        "w-12 h-12 rounded-full items-center justify-center border",
+                        "w-12 h-12 rounded-full items-center justify-center shadow-sm",
                         selectedDay === d.toString()
-                          ? "bg-black border-black"
-                          : "bg-white border-gray-200"
+                          ? "bg-[#DC2626]"
+                          : "bg-gray-100"
                       )}
                     >
                       <Text
@@ -264,7 +275,7 @@ export const AddWorkoutModal = ({ visible, onClose, onSuccess }) => {
                           "font-bold text-lg",
                           selectedDay === d.toString()
                             ? "text-white"
-                            : "text-black"
+                            : "text-gray-900"
                         )}
                       >
                         {d}

@@ -41,23 +41,30 @@ const ExerciseItem = ({ item, onToggle }) => {
   const ExerciseContent = () => (
     <View
       className={cn(
-        "bg-[#2a0e0e] flex-row items-center justify-between p-4 h-28 w-full rounded-[36px]",
-        item.completed && "opacity-50"
+        "bg-white flex-row items-center justify-between p-3 h-24 w-full rounded-2xl shadow-sm mb-3 border border-gray-100",
+        item.completed && "opacity-40"
       )}
     >
       {/* Left Square Placeholder */}
-      <View className="w-16 h-16 bg-[#d9d9d9] overflow-hidden rounded-lg">
+      <View className="w-20 h-20 bg-gray-50 overflow-hidden rounded-xl">
         {item.image ? (
           <Image
             source={{ uri: item.image }}
             className="w-full h-full"
             resizeMode="cover"
           />
-        ) : null}
+        ) : (
+          <View className="items-center justify-center flex-1">
+            <Text className="text-gray-300 text-xs">No Image</Text>
+          </View>
+        )}
       </View>
 
       {/* Exercise Name */}
-      <Text className="text-white text-xl font-normal tracking-wide">
+      <Text
+        className="text-gray-900 text-lg font-bold tracking-tight flex-1 mx-4"
+        numberOfLines={2}
+      >
         {item.name}
       </Text>
 
@@ -67,11 +74,15 @@ const ExerciseItem = ({ item, onToggle }) => {
         disabled={item.completed}
         activeOpacity={0.7}
         className={cn(
-          "w-12 h-12 rounded-full items-center justify-center",
-          item.completed ? "bg-green-500" : "bg-[#d9d9d9]"
+          "w-12 h-12 rounded-full items-center justify-center shadow-sm",
+          item.completed ? "bg-green-500" : "bg-gray-100"
         )}
       >
-        {item.completed && <Check size={24} color="#fff" />}
+        {item.completed ? (
+          <Check size={24} color="white" />
+        ) : (
+          <View className="w-4 h-4 rounded-full bg-gray-300" />
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -218,35 +229,45 @@ export default function WorkoutScreen() {
 
   return (
     <>
-      <GestureHandlerRootView className="flex-1 bg-white relative">
-        <View className="bg-gray-100 flex-row justify-between items-center px-6 pt-12 py-4 border-b border-gray-200">
+      <GestureHandlerRootView className="flex-1 bg-[#F2F2F7] relative">
+        <View className="flex-row justify-between items-center px-6 pt-16 pb-6 bg-white rounded-b-[40px] shadow-sm z-10">
           <TouchableOpacity
-            className="p-2 bg-white rounded-full shadow-sm"
+            className="p-3 bg-gray-50 rounded-full"
             onPress={handleSyncPress}
           >
-            <RefreshCw size={20} color="#000" />
+            <RefreshCw size={22} color="#DC2626" />
           </TouchableOpacity>
-          <View className="bg-white px-4 py-2 rounded-lg shadow-sm w-24 items-center">
-            <Text className="text-xl font-bold">
-              {stats.totalDays}/{stats.completedDays}
+          <View className="items-center">
+            <Text className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-1">
+              Consistency
+            </Text>
+            <Text className="text-3xl font-black text-gray-900">
+              {stats.completedDays}
+              <Text className="text-gray-300 text-xl font-medium">
+                /{stats.totalDays}
+              </Text>
             </Text>
           </View>
         </View>
-
         {/* Title Section */}
-        <View className="pt-8 pb-8 items-center justify-center">
-          <Text className="text-4xl font-bold text-black tracking-widest">
+        <View className="pt-10 pb-7 px-8">
+          <Text className="text-zinc-500 text-lg font-medium mb-1 uppercase tracking-widest">
+            Today's Focus
+          </Text>
+          <Text className="text-5xl font-black text-gray-900 italic tracking-tighter">
             {workoutTitle}
           </Text>
         </View>
-
         {/* Exercises List */}
         <ScrollView className="flex-1 px-5 mx-2 mb-6 rounded-[40px] overflow-hidden">
           <View className="gap-6 pb-32">
             {exercises.length === 0 ? (
-              <View className="items-center justify-center pt-10">
-                <Text className="text-gray-400 text-lg">
-                  No exercises found. Add one!
+              <View className="items-center justify-center pt-20">
+                <Text className="text-gray-300 text-2xl font-bold">
+                  Rest Day?
+                </Text>
+                <Text className="text-gray-400 text-sm mt-2">
+                  No exercises added yet.
                 </Text>
               </View>
             ) : (
@@ -260,15 +281,15 @@ export default function WorkoutScreen() {
             )}
           </View>
         </ScrollView>
-
         {/* Floating Action Button */}
-        <View className="absolute bottom-12 right-8">
+        <View className="absolute bottom-10 right-8">
           <TouchableOpacity
-            className="w-20 h-20 bg-[#3a1111] rounded-full items-center justify-center shadow-lg"
-            activeOpacity={0.8}
+            className="w-18 h-18 bg-[#DC2626] rounded-3xl items-center justify-center shadow-lg shadow-red-500/40 transform rotate-3"
+            style={{ width: 72, height: 72 }}
+            activeOpacity={0.9}
             onPress={() => setAddModalVisible(true)}
           >
-            <Plus color="#8a7a7a" size={40} strokeWidth={2} />
+            <Plus color="white" size={36} strokeWidth={3} />
           </TouchableOpacity>
         </View>
       </GestureHandlerRootView>
