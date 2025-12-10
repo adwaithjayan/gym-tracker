@@ -4,7 +4,12 @@ export const fetchExerciseImage = async (exerciseName) => {
     const searchUrl = `https://wger.de/api/v2/exercise/search/?term=${encodeURIComponent(
       exerciseName.trim()
     )}`;
-    const response = await fetch(searchUrl);
+    const response = await fetch(searchUrl, {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) return null;
 
